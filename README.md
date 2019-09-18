@@ -241,14 +241,16 @@ if let oldAppID = getPlistKey(appBundleInfoPlist, keyName: "CFBundleIdentifier")
 ./ideviceinstaller -i xxx.ipa
 ```
 
-总之，上述步骤较多，主要集中在前4个步骤上，不建议自己操作，你可以选择使用图形界面的`iOS App Signer`应用，也可以使用我提供的根据其开源代码写的命令行工具，`AppResign`，你可以直接下载编译好的[二进制文件](https://github.com/Urinx/iOSAppHook/releases)。
+总之，上述步骤较多，主要集中在前4个步骤上，不建议自己操作，你可以选择使用图形界面的`iOS App Signer`应用，也可以使用我提供的根据其开源代码写的命令行工具，`AppResign`，注意里面对PlugIns和Watch的重签名仍有问题，在使用时，需要将app里这两个文件夹都删掉)。
 
 使用方法：
 ```
 ./AppResign input out
 ```
 
-这里以微信为例，我们一开始直接对其重签名，总是不成功，我猜问题主要在里面的Watch App上。于是乎便采取的最简单粗暴的方法，解压ipa文件，将`WeChat.app`里面的`Watch`文件夹，连同`PlugIns`文件夹一起删去。再用`AppResign`重签名，如图所示：
+**这里以微信为例，将`WeChat.app`里面的`Watch`文件夹，连同`PlugIns`文件夹一起删去。再用`AppResign`重签名，**
+
+如图所示：
 
 ![AppResign](Screenshot/AppResign.png)
 
