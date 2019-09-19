@@ -1,13 +1,13 @@
-# iOSAppHook [![star this repo](http://github-svg-buttons.herokuapp.com/star.svg?user=Urinx&repo=iOSAppHook&style=flat&background=1081C1)](http://github.com/Urinx/iOSAppHook) [![fork this repo](http://github-svg-buttons.herokuapp.com/fork.svg?user=Urinx&repo=iOSAppHook&style=flat&background=1081C1)](http://github.com/Urinx/iOSAppHook/fork) ![platform](https://img.shields.io/badge/platform-Xcode%208.1%20&%20iOS%2010-lightgrey.svg) [![download](https://img.shields.io/github/downloads/Urinx/iOSAppHook/total.svg)](https://github.com/Urinx/iOSAppHook/releases)
-专注于非越狱环境下iOS应用逆向研究，从dylib注入，应用重签名到App Hook。
+Fork自[Urinx/iOSAppHook](https://github.com/Urinx/iOSAppHook/)， 对其中AppSign做了如下修改：
 
-> 注意！本文所有操作均在以下环境下成功进行，不同平台或环境可能存在某些问题，欢迎大家在[issue](https://github.com/Urinx/iOSAppHook/issues)中提出问题以及相互讨论。
-> 
-> Mac OS X 10.11.6 (15G12a) - macOS Sierra 10.12.4 (16E144f)<br>
-> Xcode 7.3.1 (7D1014) - 8.1 (8B62) <br>
-> iPhone 5s, iOS 9.3.3 (13G21) - iOS 10.3 (14E5230e) <br>
-> 免费开发者账号 <br>
-> 示例App：微信 6.3.19.18 - 6.5.4
+1. 语言升级到Swift4.2
+1. 始终打印log，便于排查问题
+2. 自动取BundleID的最后一位作为displayName，减少输入
+3. 自动删除/PlugIns, /Watch文件夹，防止签名失败
+4. 对CFBundleIdentifier, CFBundleDisplayName的缺失做兼容处理，不影响后续重签名
+
+
+--------------------------------
 
 ## 目录
 * [前言](#前言)
@@ -23,16 +23,6 @@
 
 ## 前言
 
-Fork自[Urinx/iOSAppHook](https://github.com/Urinx/iOSAppHook/)， 对其中AppSign做了如下修改：
-
-1. 语言升级到Swift4.2
-1. 始终打印log，便于排查问题
-2. 自动取BundleID的最后一位作为displayName，减少输入
-3. 自动删除/PlugIns, /Watch文件夹，防止签名失败
-4. 对CFBundleIdentifier, CFBundleDisplayName的缺失做兼容处理，不影响后续重签名
-
-
---------------------------------
 提到非越狱环境下`App Hook`大家早就已经耳熟能详，已经有很多大神研究过，这方面相关的资料和文章也能搜到很多。我最早是看到乌云知识库上[蒸米](http://drops.wooyun.org/author/蒸米)的文章才对这方面有所了解，当时就想试试，整个过程看似简单（大神总是一笔带过），然而当自己真正开始动手时一路上遇到各种问题（一脸懵逼），在[iOSRE论坛](http://bbs.iosre.com)上也看到大家遇到的各种问题，其实阻扰大家的主要是一些环境的搭建以及相关配置没设置好，结果导致dylib编译过程各种错误，重签名不成功，各种闪退等。所以本文里的每一步操作都会很详细的交代，确保大家都能操作成功。
 
 ## 应用脱壳
