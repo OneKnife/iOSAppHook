@@ -234,16 +234,16 @@ class AppResign {
                 fileManager.fileExists(atPath: payloadDirectory.stringByAppendingPathComponent(file), isDirectory: &isDirectory)
                 if !isDirectory.boolValue { continue }
                 
-                // MARK: Bundle variables setup
+                // 1. MARK: Bundle variables setup
                 appBundlePath = payloadDirectory.stringByAppendingPathComponent(file)
                 appBundleInfoPlist = appBundlePath.stringByAppendingPathComponent("Info.plist")
                 appBundleProvisioningFilePath = appBundlePath.stringByAppendingPathComponent("embedded.mobileprovision")
                 let useAppBundleProfile = (provisioningFile == nil && fileManager.fileExists(atPath: appBundleProvisioningFilePath))
                 
-                // MARK: Delete CFBundleResourceSpecification from Info.plist
+                // 2. MARK: Delete CFBundleResourceSpecification from Info.plist
                 Log(Process().execute(defaultsPath, workingDirectory: nil, arguments: ["delete",appBundleInfoPlist,"CFBundleResourceSpecification"]).output)
                 
-                // MARK: Copy Provisioning Profile
+                // 3. MARK: Copy Provisioning Profile
                 if provisioningFile != nil {
                     if fileManager.fileExists(atPath: appBundleProvisioningFilePath) {
                         Log("Deleting embedded.mobileprovision")
@@ -265,7 +265,7 @@ class AppResign {
                     }
                 }
                 
-                // MARK: Generate entitlements.plist
+                // 4. MARK: Generate entitlements.plist
                 if provisioningFile != nil || useAppBundleProfile {
                     print("Parsing entitlements")
                     
@@ -294,51 +294,55 @@ class AppResign {
                     
                 }
                 
-                // MARK: Make sure that the executable is well... executable.
+                // 5. MARK: Make sure that the executable is well... executable.
                 if let bundleExecutable = getPlistKey(appBundleInfoPlist, keyName: "CFBundleExecutable") {
                     appBundleExecutable = appBundlePath.stringByAppendingPathComponent(bundleExecutable)
                     _ = Process().execute(chmodPath, workingDirectory: nil, arguments: ["755", appBundleExecutable])
                 }
                 
-                // MARK: Change Application ID
+                // 6. MARK: Change Application ID
                 if newApplicationID != "" {
-                    
-                    if let oldAppID = getPlistKey(appBundleInfoPlist, keyName: "CFBundleIdentifier") {
-                        
-                        func changeAppexID(_ appexFile: String){
-                            
-                            func shortName(_ file: String, payloadDirectory: String) -> String {
-                                return file.substring(from: payloadDirectory.endIndex)
-                            }
-                            
-                            let appexPlist = appexFile.stringByAppendingPathComponent("Info.plist")
-                            if let appexBundleID = getPlistKey(appexPlist, keyName: "CFBundleIdentifier"){
-                                let newAppexID = "\(newApplicationID)\(appexBundleID.substring(from: oldAppID.endIndex))"
-                                print("Changing \(shortName(appexFile, payloadDirectory: payloadDirectory)) id to \(newAppexID)")
-                                
-                                _ = setPlistKey(appexPlist, keyName: "CFBundleIdentifier", value: newAppexID)
-                            }
-                            if Process().execute(defaultsPath, workingDirectory: nil, arguments: ["read", appexPlist,"WKCompanionAppBundleIdentifier"]).status == 0 {
-                                _ = setPlistKey(appexPlist, keyName: "WKCompanionAppBundleIdentifier", value: newApplicationID)
-                            }
-                            recursiveDirectorySearch(appexFile, extensions: ["app"], found: changeAppexID)
-                        }
-                        
-                        recursiveDirectorySearch(appBundlePath, extensions: ["appex"], found: changeAppexID)
-                    }
-                    
+                    // Remove /PlugIns/ and /Watch/
+                    let plugInsPath = appBundlePath.stringByAppendingPathComponent("PlugIns")
+                    let watchPath = appBundlePath.stringByAppendingPathComponent("Watch")
+                    cleanup(plugInsPath)
+                    cleanup(watchPath)
+                    // Comment change identifier for appex
+//                    if let oldAppID = getPlistKey(appBundleInfoPlist, keyName: "CFBundleIdentifier") {
+//
+//                        func changeAppexID(_ appexFile: String){
+//
+//                            func shortName(_ file: String, payloadDirectory: String) -> String {
+//                                return file.substring(from: payloadDirectory.endIndex)
+//                            }
+//
+//                            let appexPlist = appexFile.stringByAppendingPathComponent("Info.plist")
+//                            if let appexBundleID = getPlistKey(appexPlist, keyName: "CFBundleIdentifier"){
+//                                let newAppexID = "\(newApplicationID)\(appexBundleID.substring(from: oldAppID.endIndex))"
+//                                print("Changing \(shortName(appexFile, payloadDirectory: payloadDirectory)) id to \(newAppexID)")
+//
+//                                _ = setPlistKey(appexPlist, keyName: "CFBundleIdentifier", value: newAppexID)
+//                            }
+//                            if Process().execute(defaultsPath, workingDirectory: nil, arguments: ["read", appexPlist,"WKCompanionAppBundleIdentifier"]).status == 0 {
+//                                _ = setPlistKey(appexPlist, keyName: "WKCompanionAppBundleIdentifier", value: newApplicationID)
+//                            }
+//                            recursiveDirectorySearch(appexFile, extensions: ["app"], found: changeAppexID)
+//                        }
+//
+//                        recursiveDirectorySearch(appBundlePath, extensions: ["appex"], found: changeAppexID)
+//                    }
+
                     print("Changing App ID to \(newApplicationID)")
                     let IDChangeTask = setPlistKey(appBundleInfoPlist, keyName: "CFBundleIdentifier", value: newApplicationID)
                     if IDChangeTask.status != 0 {
                         Log("Error changing App ID")
                         Log(IDChangeTask.output)
-                        cleanup(tempFolder); return
+//                        cleanup(tempFolder)
+//                        return
                     }
-                    
-                    
                 }
                 
-                // MARK: Change Display Name
+                // 7. MARK: Change Display Name
                 if newDisplayName != "" {
                     print("Changing Display Name to \(newDisplayName)")
                     
@@ -347,7 +351,8 @@ class AppResign {
                     if displayNameChangeTask.status != 0 {
                         Log("Error changing display name")
                         Log(displayNameChangeTask.output)
-                        cleanup(tempFolder); return
+//                        cleanup(tempFolder)
+//                        return
                     }
                     
                     // change CFBundleDisplayName in InfoPlist.strings in every *.lproj
@@ -361,14 +366,15 @@ class AppResign {
                                 if lprojDisplayNameChangeTask.status != 0 {
                                     Log("Error changing display name")
                                     Log(lprojDisplayNameChangeTask.output)
-                                    cleanup(tempFolder); return
+//                                    cleanup(tempFolder);
+//                                    return
                                 }
                             }
                         }
                     }
                 }
                 
-                // MARK: Delete URL Schemes
+                // 8. MARK: Delete URL Schemes
                 if deleteURLSchemes {
                     let _ = self.plistBuddy(appBundleInfoPlist, command: "delete :CFBundleURLTypes")
                 }
@@ -405,7 +411,7 @@ class AppResign {
                     return output
                 }
                 
-                // MARK: Codesigning - General
+                // 9. MARK: Codesigning - General
                 let signableExtensions = ["dylib","so","0","vis","pvr","framework","appex","app"]
                 
                 // MARK: Codesigning - Eggs
@@ -428,14 +434,14 @@ class AppResign {
                 
                 recursiveDirectorySearch(appBundlePath, extensions: ["egg"], found: signEgg)
                 
-                // MARK: Codesigning - App
+                // 10. MARK: Codesigning - App
                 let signingFunction = generateFileSignFunc(payloadDirectory, entitlementsPath: entitlementsPlist, signingCertificate: signingCertificate)
                 
                 
                 recursiveDirectorySearch(appBundlePath, extensions: signableExtensions, found: signingFunction)
                 signingFunction(appBundlePath)
                 
-                // MARK: Codesigning - Verification
+                // 11. MARK: Codesigning - Verification
                 let verificationTask = Process().execute(codesignPath, workingDirectory: nil, arguments: ["-v",appBundlePath])
                 if verificationTask.status != 0 {
                     Log("Error verifying code signature")
@@ -489,7 +495,7 @@ class AppResign {
             Log("Deleting: \(tempFolder)")
             try fileManager.removeItem(atPath: tempFolder)
         } catch let error as NSError {
-            Log("Unable to delete temp folder")
+            Log("Unable to delete" + tempFolder)
             Log(error.localizedDescription)
         }
     }
@@ -573,7 +579,7 @@ class AppResign {
             
             if res.count == 1 {
                 arguments.append("-a")
-                let arch = (fileTask.output as NSString).substring(with: res[0].rangeAt(1))
+                let arch = (fileTask.output as NSString).substring(with: res[0].range(at:1))
                 arguments.append(arch)
             }
         }

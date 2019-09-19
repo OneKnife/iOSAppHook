@@ -10,7 +10,7 @@ import Foundation
 
 let argv = CommandLine.arguments
 let appName = argv[0].pathComponents.last!
-LogMode = false
+LogMode = true
 
 func Usage() {
     print("Version: 2.2.1\n")
@@ -155,25 +155,27 @@ func mainRoutine(_ input: String, output: String, certificate: String, provProfi
             }
             
             // Set app display name
-            if (!displayName.isEmpty) {
-                if (displayName == "*") {
-                    print("Use default display name.")
-                } else {
-                    appResign.newDisplayName = displayName
-                    print("Use App Display Name: \(displayName)\n")
-                }
-            } else {
-                let r = raw_input("Set App Display Name: ")
-                if !r.isEmpty {
-                    appResign.newDisplayName = r
-                }
-            }
+//            if (!displayName.isEmpty) {
+//                if (displayName == "*") {
+//                    print("Use default display name.")
+//                } else {
+//                    appResign.newDisplayName = displayName
+//                    print("Use App Display Name: \(displayName)\n")
+//                }
+//            } else {
+//                let r = raw_input("Set App Display Name: ")
+//                if !r.isEmpty {
+//                    appResign.newDisplayName = r
+//                }
+//            }
+            let IDs = appResign.newApplicationID.split(separator: ".")
+            appResign.newDisplayName = String(IDs.last ?? "AppResignTest")
             
-            // If delete url schemes
-            let deleteQuery = raw_input("Delete url schemes (y/n): ")
-            if !deleteQuery.isEmpty && deleteQuery == "y" {
+//            // If delete url schemes
+//            let deleteQuery = raw_input("Delete url schemes (y/n): ")
+//            if !deleteQuery.isEmpty && deleteQuery == "y" {
                 appResign.deleteURLSchemes = true
-            }
+//            }
             
             print("=============================")
             
