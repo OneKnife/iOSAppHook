@@ -12,6 +12,7 @@ Fork自[Urinx/iOSAppHook](https://github.com/Urinx/iOSAppHook/)， 对其中AppS
 
 ## 目录
 * [前言](#前言)
+* [使用方法](#使用方法)
 * [应用脱壳](#应用脱壳)
 * [应用重签名](#应用重签名)
 * [安装iOSOpenDev](#安装iOSOpenDev)
