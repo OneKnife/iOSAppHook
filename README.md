@@ -245,7 +245,7 @@ if let oldAppID = getPlistKey(appBundleInfoPlist, keyName: "CFBundleIdentifier")
 
 总之，上述步骤较多，主要集中在前4个步骤上，不建议自己操作，你可以选择使用图形界面的`iOS App Signer`应用，也可以使用我提供的根据其开源代码写的命令行工具，`AppResign`，注意里面对PlugIns和Watch的重签名仍有问题，在使用时，需要将app里这两个文件夹都删掉)。
 
-使用方法：
+## 使用方法：
 ```
 ./AppResign input out
 ```
